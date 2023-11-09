@@ -1,1 +1,0 @@
-pipenv run flask --app ./ll/index.py --debug run -h 0.0.0.0
