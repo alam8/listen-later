@@ -21,10 +21,12 @@ class Item(object):
         return '<Item(id={self.id!r})>'.format(self=self)
 
 class ItemSchema(Schema):
+    id = fields.Int(dump_only=True)
+    date_added = fields.DateTime(dump_only=True)
     content_link = fields.String()
-    tag_ids = fields.List(fields.Int())
-    collection_ids = fields.List(fields.Int())
-    rating = fields.Int()
+    tag_ids = fields.List(fields.Int(), missing=[])
+    collection_ids = fields.List(fields.Int(), missing=[])
+    rating = fields.Int(missing=None)
     listened = fields.Boolean(missing=False)
 
     @post_load
