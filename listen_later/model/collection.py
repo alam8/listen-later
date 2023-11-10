@@ -12,11 +12,10 @@ class Collection:
     def __repr__(self):
         return '<Collection(id={self.id!r},name={self.name!r})>'.format(self=self)
 
-
 class CollectionSchema(Schema):
     id = fields.Int()
+    date_added = fields.DateTime(dump_only=True)
     name = fields.String()
-    date_added = fields.DateTime()
 
     @post_load
     def make_collection(self, data, **kwargs):
