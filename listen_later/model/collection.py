@@ -2,7 +2,6 @@ import datetime as dt
 
 from marshmallow import Schema, fields, post_load
 
-
 class Collection:
     def __init__(self, id, name):
         self.id = id
