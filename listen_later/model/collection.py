@@ -19,3 +19,6 @@ class CollectionSchema(Schema):
     @post_load
     def make_collection(self, data, **kwargs):
         return Collection(**data)
+    
+class CollectionUpdateSchema(Schema):
+    name = fields.String()

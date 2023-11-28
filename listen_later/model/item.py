@@ -32,3 +32,10 @@ class ItemSchema(Schema):
     @post_load
     def make_item(self, data, **kwargs):
         return Item(**data)
+    
+class ItemUpdateSchema(Schema):
+    content_link = fields.String()
+    tag_ids = fields.List(fields.Int())
+    collection_ids = fields.List(fields.Int())
+    rating = fields.Int()
+    listened = fields.Boolean()

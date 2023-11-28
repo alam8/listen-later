@@ -1,7 +1,6 @@
 import datetime as dt
 
 from marshmallow import Schema, fields, post_load
-from listen_later.model.constants import ALL_COLLECTION_ID
 
 class Tag(object):
     def __init__(self, name):
@@ -22,3 +21,6 @@ class TagSchema(Schema):
     @post_load
     def make_item(self, data, **kwargs):
         return Tag(**data)
+    
+class TagUpdateSchema(Schema):
+    name = fields.String()

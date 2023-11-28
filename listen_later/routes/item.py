@@ -1,5 +1,5 @@
 from flask import request
-from listen_later.model.item import ItemSchema
+from listen_later.model.item import ItemSchema, ItemUpdateSchema
 from listen_later.model.item_type import ItemType
 from listen_later.index import app
 
@@ -12,7 +12,7 @@ def get_items():
 @app.route("/items/<int:pk>")
 def get_item(pk):
     # TODO: query item w/ ORM
-    item = None # Item.get(Item.id == pk)
+    item = None # db.collection("Item").document(pk)
     if not item:
         return {"errors": "Item could not be found"}, 404
     return ItemSchema.dump(item)
@@ -26,25 +26,30 @@ def add_item():
 @app.route("/items/<int:pk>", methods=['PUT', 'POST'])
 def update_item(pk):
     # TODO: query item w/ ORM
-    item = None # Item.get(Item.id == pk)
-
-    # TODO: change update logic
-    try:
-        new_link = request.get_json()["content_link"]
-    except:
-        return {"errors": "Link not provided"}, 400
+    item = None # db.collection("Item").document(pk)
 
     if not item:
         return {"errors": f"Item id={pk} could not be found"}, 404
 
-    update_link = item.update(content_link=new_link)
-    update_link.execute()
-    return ItemSchema().dump(item)
+    item_update = ItemUpdateSchema().load(request.get_json())
+
+    if item_update.content_link:
+        item.update({"content_link": item_update.content_link})
+    if item_update.tag_ids:
+        item.update({"tag_ids": item_update.tag_ids})
+    if item_update.collection_ids:
+        item.update({"collection_ids": item_update.collection_ids})
+    if item_update.rating:
+        item.update({"ratings": item_update.ratings})
+    if item_update.listened:
+        item.update({"listened": item_update.listened})
+
+    return ItemUpdateSchema().dump(item_update)
 
 @app.route("/items/<int:pk>", methods=['DELETE'])
 def delete_item(pk):
     # TODO: query item w/ ORM
-    item = None # Item.get(item.id == pk)
+    item = None # db.collection("Item").document(pk)
 
     if not item:
         return {"errors": f"Item id={pk} could not be found"}, 404
