@@ -6,7 +6,7 @@ from listen_later.model.constants import ALL_COLLECTION_ID
 class Item(object):
     def __init__(self, content_link, tag_ids, collection_ids, rating, listened):
         # TODO: implement IDs
-        self.id = 0
+        self.id = "0"
         self.date_added = dt.datetime.now()
         self.content_link = content_link
         # TODO: use SpotifyAPI to get type
@@ -21,7 +21,7 @@ class Item(object):
         return '<Item(id={self.id!r})>'.format(self=self)
 
 class ItemSchema(Schema):
-    id = fields.Int(dump_only=True)
+    id = fields.String(dump_only=True)
     date_added = fields.DateTime(dump_only=True)
     content_link = fields.String()
     tag_ids = fields.List(fields.Int(), missing=[])

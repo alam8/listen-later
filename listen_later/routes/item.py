@@ -1,7 +1,7 @@
 from flask import request
 from listen_later.model.item import ItemSchema, ItemUpdateSchema
 from listen_later.model.item_type import ItemType
-from listen_later.index import app
+from listen_later.index import app, db
 
 items = []
 
@@ -9,18 +9,22 @@ items = []
 def get_items():
     return ItemSchema(many=True).dump(items)
 
-@app.route("/items/<int:pk>")
+@app.route("/items/<string:pk>")
 def get_item(pk):
-    # TODO: query item w/ ORM
-    item = None # db.collection("Item").document(pk)
-    if not item:
+    doc_ref = db.collection("items").document(pk)
+    item = doc_ref.get()
+
+    if not item.exists:
         return {"errors": "Item could not be found"}, 404
-    return ItemSchema.dump(item)
+
+    return item.to_dict()
 
 @app.route("/items", methods=['POST'])
 def add_item():
     item = ItemSchema().load(request.get_json())
-    items.append(item)
+    doc_ref = db.collection("items").document()
+    item.id = doc_ref.id
+    doc_ref.set(ItemSchema().dump(item))
     return f'Added {item} successfully', 201
 
 @app.route("/items/<int:pk>", methods=['PUT', 'POST'])

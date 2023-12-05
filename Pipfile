@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 flask = "*"
 marshmallow = "*"
+firebase-admin = "*"
+pip = "*"
 
 [dev-packages]
 
