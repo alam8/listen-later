@@ -19,48 +19,50 @@ def get_item(pk):
     item = doc_ref.get()
 
     if not item.exists:
-        return {"errors": "Item could not be found"}, 404
+        return {"errors": f"Item id={pk} could not be found"}, 404
 
     return item.to_dict()
 
 @app.route("/items", methods=['POST'])
 def add_item():
-    item = ItemSchema().load(request.get_json())
     doc_ref = db.collection("items").document()
+    item = ItemSchema().load(request.get_json())
+
     item.id = doc_ref.id
     doc_ref.set(ItemSchema().dump(item))
+
     return f'Added {item} successfully', 201
 
-@app.route("/items/<int:pk>", methods=['PUT', 'POST'])
+@app.route("/items/<string:pk>", methods=['PUT', 'POST'])
 def update_item(pk):
-    # TODO: query item w/ ORM
-    item = None # db.collection("Item").document(pk)
+    doc_ref = db.collection("items").document(pk)
+    item = doc_ref.get()
 
-    if not item:
+    if not item.exists:
         return {"errors": f"Item id={pk} could not be found"}, 404
 
     item_update = ItemUpdateSchema().load(request.get_json())
 
-    if item_update.content_link:
-        item.update({"content_link": item_update.content_link})
-    if item_update.tag_ids:
-        item.update({"tag_ids": item_update.tag_ids})
-    if item_update.collection_ids:
-        item.update({"collection_ids": item_update.collection_ids})
-    if item_update.rating:
-        item.update({"ratings": item_update.ratings})
-    if item_update.listened:
-        item.update({"listened": item_update.listened})
+    if item_update.get("content_link"):
+        doc_ref.update({"content_link": item_update.get("content_link")})
+    if item_update.get("tag_ids"):
+        doc_ref.update({"tag_ids": item_update.get("tag_ids")})
+    if item_update.get("collection_ids"):
+        doc_ref.update({"collection_ids": item_update.get("collection_ids")})
+    if item_update.get("rating"):
+        doc_ref.update({"rating": item_update.get("rating")})
+    if item_update.get("listened"):
+        doc_ref.update({"listened": item_update.get("listened")})
 
-    return ItemUpdateSchema().dump(item_update)
+    return f'Updated item id={pk} successfully with the following values:<br />{ItemUpdateSchema().dump(item_update)}', 200
 
-@app.route("/items/<int:pk>", methods=['DELETE'])
+@app.route("/items/<string:pk>", methods=['DELETE'])
 def delete_item(pk):
-    # TODO: query item w/ ORM
-    item = None # db.collection("Item").document(pk)
+    doc_ref = db.collection("items").document(pk)
+    item = doc_ref.get()
 
-    if not item:
+    if not item.exists:
         return {"errors": f"Item id={pk} could not be found"}, 404
 
-    items.remove(item)
-    return f'Deleted {item} successfully', 200
+    doc_ref.delete()
+    return f'Deleted item id={pk} successfully', 200
