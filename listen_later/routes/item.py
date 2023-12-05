@@ -3,10 +3,14 @@ from listen_later.model.item import ItemSchema, ItemUpdateSchema
 from listen_later.model.item_type import ItemType
 from listen_later.index import app, db
 
-items = []
-
 @app.route("/items")
 def get_items():
+    docs = db.collection("items").stream()
+    items = []
+
+    for doc in docs:
+        items.append(ItemSchema().load(doc.to_dict()))
+
     return ItemSchema(many=True).dump(items)
 
 @app.route("/items/<string:pk>")

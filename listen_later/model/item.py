@@ -4,16 +4,15 @@ from marshmallow import Schema, fields, post_load
 from listen_later.model.constants import ALL_COLLECTION_ID
 
 class Item(object):
-    def __init__(self, content_link, tag_ids, collection_ids, rating, listened):
-        # TODO: implement IDs
-        self.id = "0"
-        self.date_added = dt.datetime.now()
+    def __init__(self, id, date_added, content_link, tag_ids, collection_ids, rating, listened):
+        self.id = id
+        self.date_added = date_added
         self.content_link = content_link
-        # TODO: use SpotifyAPI to get type
+        # TODO: use Spotify API to get type
         self.item_type_id = None
 
         self.tag_ids = tag_ids or []
-        self.collection_ids = [ALL_COLLECTION_ID] + collection_ids
+        self.collection_ids = collection_ids
         self.rating = rating or None
         self.listened = listened or False
 
@@ -21,8 +20,8 @@ class Item(object):
         return '<Item(id={self.id!r})>'.format(self=self)
 
 class ItemSchema(Schema):
-    id = fields.String(dump_only=True)
-    date_added = fields.DateTime(dump_only=True)
+    id = fields.String()
+    date_added = fields.DateTime()
     content_link = fields.String()
     tag_ids = fields.List(fields.Int(), missing=[])
     collection_ids = fields.List(fields.Int(), missing=[])
