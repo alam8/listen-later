@@ -1,11 +1,12 @@
 from flask import request
 from listen_later.model.item import ItemSchema, ItemUpdateSchema
 from listen_later.model.item_type import ItemType
+from listen_later.model.constants import *
 from listen_later.index import app, db
 
 @app.route("/items")
 def get_items():
-    docs = db.collection("items").stream()
+    docs = db.collection(ITEMS).stream()
     items = []
 
     for doc in docs:
@@ -15,7 +16,7 @@ def get_items():
 
 @app.route("/items/<string:pk>")
 def get_item(pk):
-    doc_ref = db.collection("items").document(pk)
+    doc_ref = db.collection(ITEMS).document(pk)
     item = doc_ref.get()
 
     if not item.exists:
@@ -25,7 +26,7 @@ def get_item(pk):
 
 @app.route("/items", methods=['POST'])
 def add_item():
-    doc_ref = db.collection("items").document()
+    doc_ref = db.collection(ITEMS).document()
     item = ItemSchema().load(request.get_json())
 
     item.id = doc_ref.id
@@ -35,7 +36,7 @@ def add_item():
 
 @app.route("/items/<string:pk>", methods=['PUT', 'POST'])
 def update_item(pk):
-    doc_ref = db.collection("items").document(pk)
+    doc_ref = db.collection(ITEMS).document(pk)
     item = doc_ref.get()
 
     if not item.exists:
@@ -43,22 +44,22 @@ def update_item(pk):
 
     item_update = ItemUpdateSchema().load(request.get_json())
 
-    if item_update.get("content_link"):
-        doc_ref.update({"content_link": item_update.get("content_link")})
-    if item_update.get("tag_ids"):
-        doc_ref.update({"tag_ids": item_update.get("tag_ids")})
-    if item_update.get("collection_ids"):
-        doc_ref.update({"collection_ids": item_update.get("collection_ids")})
-    if item_update.get("rating"):
-        doc_ref.update({"rating": item_update.get("rating")})
-    if item_update.get("listened"):
-        doc_ref.update({"listened": item_update.get("listened")})
+    if item_update.get(CONTENT_LINK):
+        doc_ref.update({CONTENT_LINK: item_update.get(CONTENT_LINK)})
+    if item_update.get(TAG_IDS):
+        doc_ref.update({TAG_IDS: item_update.get(TAG_IDS)})
+    if item_update.get(COLLECTION_IDS):
+        doc_ref.update({COLLECTION_IDS: item_update.get(COLLECTION_IDS)})
+    if item_update.get(RATING):
+        doc_ref.update({RATING: item_update.get(RATING)})
+    if item_update.get(LISTENED):
+        doc_ref.update({LISTENED: item_update.get(LISTENED)})
 
     return f'Updated item id={pk} successfully with the following values:<br />{ItemUpdateSchema().dump(item_update)}', 200
 
 @app.route("/items/<string:pk>", methods=['DELETE'])
 def delete_item(pk):
-    doc_ref = db.collection("items").document(pk)
+    doc_ref = db.collection(ITEMS).document(pk)
     item = doc_ref.get()
 
     if not item.exists:
