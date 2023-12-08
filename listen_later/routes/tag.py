@@ -1,51 +1,62 @@
 from flask import request
 from listen_later.model.tag import TagSchema, TagUpdateSchema
-from listen_later.index import app
-
-tags = []
+from listen_later.model.constants import *
+from listen_later.index import app, db
 
 @app.route("/tags")
 def get_tags():
+    docs = db.collection(TAGS).stream()
+    tags = []
+
+    for doc in docs:
+        tags.append(TagSchema().load(doc.to_dict()))
+
     return TagSchema(many=True).dump(tags)
 
-@app.route("/tags/<int:pk>")
+@app.route("/tags/<string:pk>")
 def get_tag(pk):
-    # TODO: query tag w/ ORM
-    tag = None # db.collection("Tag").document(pk)
-    if not tag:
-        return {"errors": "Tag could not be found"}, 404
-    return TagSchema.dump(tag)
+    doc_ref = db.collection(TAGS).document(pk)
+    tag = doc_ref.get()
+
+    if not tag.exists:
+        return {"errors": f"Tag id={pk} could not be found"}, 404
+
+    return tag.to_dict()
 
 @app.route("/tags", methods=['POST'])
 def add_tag():
+    doc_ref = db.collection(TAGS).document()
     tag = TagSchema().load(request.get_json())
-    tags.append(tag)
-    return '', 204
+
+    tag.id = doc_ref.id
+    doc_ref.set(TagSchema().dump(tag))
+
+    return f'Added {tag} successfully', 201
 
 @app.route("/tags/<int:pk>", methods=['PUT', 'POST'])
 def update_tag(pk):
-    # TODO: query tag w/ ORM
-    tag = None # db.collection("Tag").document(pk)
+    doc_ref = db.collection(TAGS).document(pk)
+    tag = doc_ref.get()
 
-    if not tag:
+    if not tag.exists:
         return {"errors": f"Tag id={pk} could not be found"}, 404
     
     tag_update = TagUpdateSchema().load(request.get_json())
 
-    if tag_update.name:
-        tag.update({"name": tag_update.name})
+    if tag_update.get(TAG_NAME):
+        doc_ref.update({TAG_NAME: tag_update.get(TAG_NAME)})
 
-    return TagUpdateSchema().dump(tag_update)
+    return f'Updated tag id={pk} successfully with the following values:<br />{TagUpdateSchema().dump(tag_update)}', 200
 
 @app.route("/tags/<int:pk>", methods=['DELETE'])
-def delete_tag(pk):
-    # TODO: query tag w/ ORM
-    tag = None # db.collection("Tag").document(pk)
+def delete_tag(pk):    
+    doc_ref = db.collection("Tag").document(pk)
+    tag = doc_ref.get()
 
-    if not tag:
+    if not tag.exists:
         return {"errors": f"Tag id={pk} could not be found"}, 404
 
     # TODO: remove pk from each item's tag_ids
 
-    tags.remove(tag)
-    return f'Deleted {tag} successfully', 200
+    doc_ref.delete()
+    return f'Deleted tag id={pk} successfully', 200

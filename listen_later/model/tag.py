@@ -3,19 +3,17 @@ import datetime as dt
 from marshmallow import Schema, fields, post_load
 
 class Tag(object):
-    def __init__(self, name):
-        # TODO: implement ids
-        self.id = 0
-        self.date_added = dt.datetime.now()
-
+    def __init__(self, id, date_added, name):
+        self.id = id or ""
+        self.date_added = date_added or dt.datetime.now()
         self.name = name
 
     def __repr__(self):
         return '<Tag(id={self.id!r},name={self.name})>'.format(self=self)
 
 class TagSchema(Schema):
-    id = fields.Int(dump_only=True)
-    date_added = fields.DateTime(dump_only=True)
+    id = fields.String(missing="")
+    date_added = fields.DateTime(missing=dt.datetime.now())
     name = fields.String()
 
     @post_load
