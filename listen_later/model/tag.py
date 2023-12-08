@@ -14,7 +14,7 @@ class Tag(object):
 class TagSchema(Schema):
     id = fields.String(missing="")
     date_added = fields.DateTime(missing=dt.datetime.now())
-    name = fields.String()
+    name = fields.String(required=True)
 
     @post_load
     def make_item(self, data, **kwargs):
