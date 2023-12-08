@@ -1,6 +1,8 @@
 ALL_COLLECTION_ID = 1
+TEST_USER = "YS9XU0sLCp9nq9Gxtw4N"
 
 # Firebase Collection Names
+USERS = "users"
 ITEMS = "items"
 TAGS = "tags"
 COLLECTIONS = "collections"

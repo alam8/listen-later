@@ -3,8 +3,8 @@ from listen_later.model.collection import Collection, CollectionSchema, Collecti
 from listen_later.model.constants import *
 from listen_later.index import app, db
 
-all_collection = Collection(ALL_COLLECTION_ID, 'All')
-collections = [all_collection]
+# all_collection = Collection(ALL_COLLECTION_ID, 'All')
+# collections = [all_collection]
 
 @app.route("/collections")
 def get_collections():

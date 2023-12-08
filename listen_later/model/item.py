@@ -22,7 +22,7 @@ class Item(object):
 class ItemSchema(Schema):
     id = fields.String(missing="")
     date_added = fields.DateTime(missing=dt.datetime.now())
-    content_link = fields.String(required=True)
+    content_link = fields.String()
     tag_ids = fields.List(fields.Int(), missing=[])
     collection_ids = fields.List(fields.Int(), missing=[])
     rating = fields.Int(missing=None)
