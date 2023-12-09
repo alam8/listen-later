@@ -1,4 +1,4 @@
-ALL_COLLECTION_ID = 1
+ALL_COLLECTION_ID = "all_collection"
 TEST_USER = "YS9XU0sLCp9nq9Gxtw4N"
 
 # Firebase Collection Names

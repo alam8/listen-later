@@ -32,6 +32,10 @@ def add_item():
     item.id = item_ref.id
     item_ref.set(ItemSchema().dump(item))
 
+    all_collection_ref = user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID)
+    all_collection_ref.collection(ITEMS).document(item.id).set({"id": item_ref.id})
+    item_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).set({COLLECTION_NAME: all_collection_ref.get().to_dict().get(COLLECTION_NAME)})
+
     return f'Added {item} successfully', 201
 
 @app.route("/items/<string:pk>", methods=['PUT', 'POST'])
@@ -65,5 +69,6 @@ def delete_item(pk):
     if not item.exists:
         return {"errors": f"Item id={pk} could not be found"}, 404
 
+    # TODO: Delete instance of item from every collection/tag it belongs to
     item_ref.delete()
     return f'Deleted item id={pk} successfully', 200

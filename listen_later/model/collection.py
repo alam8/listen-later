@@ -1,5 +1,4 @@
 import datetime as dt
-
 from marshmallow import Schema, fields, post_load
 
 class Collection:
