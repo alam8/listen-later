@@ -4,9 +4,11 @@ from listen_later.model.item_type import ItemType
 from listen_later.model.constants import *
 from listen_later.index import app, user_ref
 
+all_item_collection_ref = user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).collection(ITEMS)
+
 @app.route("/items")
 def get_items():
-    items_ref = user_ref.collection(ITEMS).stream()
+    items_ref = all_item_collection_ref.stream()
     all_items = []
 
     for item_ref in items_ref:
@@ -16,7 +18,7 @@ def get_items():
 
 @app.route("/items/<string:pk>")
 def get_item(pk):
-    item_ref = user_ref.collection(ITEMS).document(pk)
+    item_ref = all_item_collection_ref.document(pk)
     item = item_ref.get()
 
     if not item.exists:
@@ -26,21 +28,21 @@ def get_item(pk):
 
 @app.route("/items", methods=['POST'])
 def add_item():
-    item_ref = user_ref.collection(ITEMS).document()
+    item_ref = all_item_collection_ref.document()
     item = ItemSchema().load(request.get_json())
 
     item.id = item_ref.id
     item_ref.set(ItemSchema().dump(item))
 
     all_collection_ref = user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID)
-    all_collection_ref.collection(ITEMS).document(item.id).set({"id": item_ref.id})
+    # Note: Don't display the all_collection when exposing item -> collections to the user
     item_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).set({COLLECTION_NAME: all_collection_ref.get().to_dict().get(COLLECTION_NAME)})
 
     return f'Added {item} successfully', 201
 
 @app.route("/items/<string:pk>", methods=['PUT', 'POST'])
 def update_item(pk):
-    item_ref = user_ref.collection(ITEMS).document(pk)
+    item_ref = all_item_collection_ref.document(pk)
     item = item_ref.get()
 
     if not item.exists:
@@ -63,12 +65,12 @@ def update_item(pk):
 
 @app.route("/items/<string:pk>", methods=['DELETE'])
 def delete_item(pk):
-    item_ref = user_ref.collection(ITEMS).document(pk)
+    item_ref = all_item_collection_ref.document(pk)
     item = item_ref.get()
 
     if not item.exists:
         return {"errors": f"Item id={pk} could not be found"}, 404
 
-    # TODO: Delete instance of item from every collection/tag it belongs to
+    # TODO: Also delete instance of item from every collection/tag it belongs to
     item_ref.delete()
     return f'Deleted item id={pk} successfully', 200

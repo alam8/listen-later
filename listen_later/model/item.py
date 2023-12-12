@@ -15,7 +15,7 @@ class Item(object):
         self.listened = listened or False
 
     def __repr__(self):
-        return 'Item id={self.id!r}'.format(self=self)
+        return 'Item(id={self.id!r})'.format(self=self)
 
 class ItemSchema(Schema):
     id = fields.String(missing="")
