@@ -68,9 +68,10 @@ def delete_collection(pk):
         return {"errors": "All collection cannot be deleted"}, 403
 
     # TODO: if delete_items:
-    #           remove each item in collection from items table
+    #           delete every item in this collection from all other collections
     #       else:
-    #           remove pk from each item's collection_ids
+    #           remove only this collection from each instance of every item in
+    #           this collection's sub-fbc of collections
 
     collection_ref.delete()
     return f'Deleted collection id={pk} successfully', 200
