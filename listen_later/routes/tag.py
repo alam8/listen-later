@@ -24,14 +24,14 @@ def get_tag(pk):
     return tag.to_dict()
 
 @app.route("/tags", methods=['POST'])
-def add_tag():
+def create_tag():
     doc_ref = db.collection(TAGS).document()
     tag = TagSchema().load(request.get_json())
 
     tag.id = doc_ref.id
     doc_ref.set(TagSchema().dump(tag))
 
-    return f'Added {tag} successfully', 201
+    return f'Created {tag} successfully', 201
 
 @app.route("/tags/<int:pk>", methods=['PUT', 'POST'])
 def update_tag(pk):

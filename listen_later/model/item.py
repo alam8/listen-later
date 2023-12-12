@@ -3,16 +3,15 @@ from marshmallow import Schema, fields, post_load
 
 class Item(object):
     def __init__(self, id, date_added, content_link, tag_ids, collection_ids, rating, listened):
+        # TODO: Remove id? (How will __repr__ get the Firebase id? Does it need to?)
         self.id = id or ""
-        self.date_added = date_added or dt.datetime.now()
         self.content_link = content_link
-        # TODO: use Spotify API to get type
-        self.item_type_id = None
-
-        self.tag_ids = tag_ids or []
-        self.collection_ids = collection_ids
         self.rating = rating or None
         self.listened = listened or False
+        self.date_added = date_added or dt.datetime.now()
+
+        # TODO: use Spotify API to get name, artist, image url, type, etc. from content_link
+        self.item_type_id = None
 
     def __repr__(self):
         return 'Item(id={self.id!r})'.format(self=self)
@@ -21,8 +20,6 @@ class ItemSchema(Schema):
     id = fields.String(missing="")
     date_added = fields.DateTime(missing=dt.datetime.now())
     content_link = fields.String()
-    tag_ids = fields.List(fields.Int(), missing=[])
-    collection_ids = fields.List(fields.Int(), missing=[])
     rating = fields.Int(missing=None)
     listened = fields.Boolean(missing=False)
 
@@ -32,7 +29,5 @@ class ItemSchema(Schema):
 
 class ItemUpdateSchema(Schema):
     content_link = fields.String()
-    tag_ids = fields.List(fields.Int())
-    collection_ids = fields.List(fields.Int())
     rating = fields.Int()
     listened = fields.Boolean()
