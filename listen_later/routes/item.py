@@ -4,7 +4,7 @@ from listen_later.model.item_type import ItemType
 from listen_later.model.constants import *
 from listen_later.index import app, user_ref
 
-# TODO: Test whether all_collection needs to be created upon user initialization or if Firebase will
+# TODO: test whether all_collection needs to be created upon user initialization or if Firebase will
 #       automatically create it without issues
 user_all_items_ref = user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).collection(ITEMS)
 
@@ -69,6 +69,7 @@ def delete_item(pk):
     if not item.exists:
         return {"errors": f"Item id={pk} could not be found"}, 404
 
-    # TODO: Also delete instance of item from every collection/tag it belongs to
+    # TODO: delete instance of item from every collection/tag it belongs to
+
     item_ref.delete()
     return f'Deleted item id={pk} successfully', 200

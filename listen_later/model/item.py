@@ -3,7 +3,7 @@ from marshmallow import Schema, fields, post_load
 
 class Item(object):
     def __init__(self, id, date_added, content_link, tag_ids, collection_ids, rating, listened):
-        # TODO: Remove id? (How will __repr__ get the Firebase id? Does it need to?)
+        # TODO: remove id? (how will __repr__ get the Firebase id? Does it need to?)
         self.id = id or ""
         self.content_link = content_link
         self.rating = rating or None
