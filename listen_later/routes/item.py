@@ -2,8 +2,9 @@ from flask import request
 from listen_later.model.item import ItemSchema, ItemUpdateSchema
 from listen_later.model.item_type import ItemType
 from listen_later.model.constants import *
-from listen_later.index import app, user_ref
+from listen_later.index import app, user_ref, return_not_found_error
 
+TYPE = "Item"
 # TODO: test whether all_collection needs to be created upon user initialization or if Firebase will
 #       automatically create it without issues
 user_all_items_ref = user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).collection(ITEMS)
@@ -24,7 +25,7 @@ def get_item(pk):
     item = item_ref.get()
 
     if not item.exists:
-        return {"errors": f"Item id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
 
     return item.to_dict()
 
@@ -48,7 +49,7 @@ def update_item(pk):
     item = item_ref.get()
 
     if not item.exists:
-        return {"errors": f"Item id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
 
     item_update = ItemUpdateSchema().load(request.get_json())
 
@@ -67,7 +68,7 @@ def delete_item(pk):
     item = item_ref.get()
 
     if not item.exists:
-        return {"errors": f"Item id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
 
     # TODO: delete instance of item from every collection/tag it belongs to
 

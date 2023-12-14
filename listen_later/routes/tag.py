@@ -1,8 +1,9 @@
 from flask import request
 from listen_later.model.tag import TagSchema, TagUpdateSchema
 from listen_later.model.constants import *
-from listen_later.index import app, user_ref
+from listen_later.index import app, user_ref, return_not_found_error
 
+TYPE = "Tag"
 user_tags_ref = user_ref.collection(TAGS)
 
 @app.route("/tags")
@@ -21,7 +22,7 @@ def get_tag(pk):
     tag = tag_ref.get()
 
     if not tag.exists:
-        return {"errors": f"Tag id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
 
     return tag.to_dict()
 
@@ -41,7 +42,7 @@ def update_tag(pk):
     tag = tag_ref.get()
 
     if not tag.exists:
-        return {"errors": f"Tag id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
 
     tag_update = TagUpdateSchema().load(request.get_json())
 
@@ -56,7 +57,7 @@ def delete_tag(pk):
     tag = tag_ref.get()
 
     if not tag.exists:
-        return {"errors": f"Tag id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
 
     # TODO: remove only this tag from each instance of every item in
     #       this tag's sub-fbc of tags

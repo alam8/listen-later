@@ -1,8 +1,9 @@
 from flask import request
 from listen_later.model.collection import CollectionSchema, CollectionUpdateSchema
 from listen_later.model.constants import *
-from listen_later.index import app, user_ref
+from listen_later.index import app, user_ref, return_not_found_error
 
+TYPE = "Collection"
 user_collections_ref = user_ref.collection(COLLECTIONS)
 
 @app.route("/collections")
@@ -21,7 +22,7 @@ def get_collection(pk):
     collection = collection_ref.get()
 
     if not collection.exists:
-        return {"errors": f"Collection id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
 
     return collection.to_dict()
 
@@ -41,7 +42,7 @@ def update_collection(pk):
     collection = collection_ref.get()
 
     if not collection.exists:
-        return {"errors": f"Collection id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
     elif pk == ALL_COLLECTION_ID:
         return {"errors": "All collection cannot be renamed"}, 403
 
@@ -63,7 +64,7 @@ def delete_collection(pk):
         delete_items = False
 
     if not collection.exists:
-        return {"errors": f"Collection id={pk} could not be found"}, 404
+        return return_not_found_error(TYPE, pk)
     elif pk == ALL_COLLECTION_ID:
         return {"errors": "All collection cannot be deleted"}, 403
 
