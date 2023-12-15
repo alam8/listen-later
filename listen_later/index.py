@@ -9,7 +9,7 @@ db = firestore.client()
 # TODO: replace test user id w/ one fetched by authorization handler
 user_ref = db.collection(USERS).document(TEST_USER)
 
-def return_not_found_error(type, pk):
+def not_found_error(type, pk):
     return {"errors": f"{type}(id={pk}) could not be found"}, 404
 
 from listen_later.routes import item, collection, tag, logic

@@ -1,9 +1,8 @@
 from flask import request
 from listen_later.model.collection import CollectionSchema, CollectionUpdateSchema
 from listen_later.model.constants import *
-from listen_later.index import app, user_ref, return_not_found_error
+from listen_later.index import app, user_ref, not_found_error
 
-TYPE = "Collection"
 user_collections_ref = user_ref.collection(COLLECTIONS)
 
 @app.route("/collections")
@@ -16,19 +15,21 @@ def get_collections():
 
     return CollectionSchema(many=True).dump(all_collections)
 
+def get_collection_ref(pk=None):
+    return user_collections_ref.document(pk)
+
 @app.route("/collections/<string:pk>")
 def get_collection(pk):
-    collection_ref = user_collections_ref.document(pk)
-    collection = collection_ref.get()
+    collection = get_collection_ref(pk).get()
 
     if not collection.exists:
-        return return_not_found_error(TYPE, pk)
+        return not_found_error(COLLECTION_TYPE, pk)
 
     return collection.to_dict()
 
 @app.route("/collections", methods=['POST'])
 def create_collection():
-    collection_ref = user_collections_ref.document()
+    collection_ref = get_collection_ref()
     collection = CollectionSchema().load(request.get_json())
 
     collection.id = collection_ref.id
@@ -38,11 +39,11 @@ def create_collection():
 
 @app.route("/collections/<string:pk>", methods=['PUT', 'POST'])
 def update_collection(pk):
-    collection_ref = user_collections_ref.document(pk)
+    collection_ref = get_collection_ref(pk)
     collection = collection_ref.get()
 
     if not collection.exists:
-        return return_not_found_error(TYPE, pk)
+        return not_found_error(COLLECTION_TYPE, pk)
     elif pk == ALL_COLLECTION_ID:
         return {"errors": "All collection cannot be renamed"}, 403
 
@@ -55,7 +56,7 @@ def update_collection(pk):
 
 @app.route("/collections/<string:pk>", methods=['DELETE'])
 def delete_collection(pk):
-    collection_ref = user_collections_ref.document(pk)
+    collection_ref = get_collection_ref(pk)
     collection = collection_ref.get()
 
     try:
@@ -64,7 +65,7 @@ def delete_collection(pk):
         delete_items = False
 
     if not collection.exists:
-        return return_not_found_error(TYPE, pk)
+        return not_found_error(COLLECTION_TYPE, pk)
     elif pk == ALL_COLLECTION_ID:
         return {"errors": "All collection cannot be deleted"}, 403
 

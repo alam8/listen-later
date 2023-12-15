@@ -2,9 +2,8 @@ from flask import request
 from listen_later.model.item import ItemSchema, ItemUpdateSchema
 from listen_later.model.item_type import ItemType
 from listen_later.model.constants import *
-from listen_later.index import app, user_ref, return_not_found_error
+from listen_later.index import app, user_ref, not_found_error
 
-TYPE = "Item"
 # TODO: test whether all_collection needs to be created upon user initialization or if Firebase will
 #       automatically create it without issues
 user_all_items_ref = user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).collection(ITEMS)
@@ -19,19 +18,22 @@ def get_items():
 
     return ItemSchema(many=True).dump(all_items)
 
+def get_item_ref(pk=None):
+    return user_all_items_ref.document(pk)
+
 @app.route("/items/<string:pk>")
 def get_item(pk):
-    item_ref = user_all_items_ref.document(pk)
+    item_ref = get_item_ref(pk)
     item = item_ref.get()
 
     if not item.exists:
-        return return_not_found_error(TYPE, pk)
+        return not_found_error(ITEM_TYPE, pk)
 
     return item.to_dict()
 
 @app.route("/items", methods=['POST'])
 def create_item():
-    item_ref = user_all_items_ref.document()
+    item_ref = get_item_ref()
     item = ItemSchema().load(request.get_json())
 
     item.id = item_ref.id
@@ -45,11 +47,11 @@ def create_item():
 
 @app.route("/items/<string:pk>", methods=['PUT', 'POST'])
 def update_item(pk):
-    item_ref = user_all_items_ref.document(pk)
+    item_ref = get_item_ref(pk)
     item = item_ref.get()
 
     if not item.exists:
-        return return_not_found_error(TYPE, pk)
+        return not_found_error(ITEM_TYPE, pk)
 
     item_update = ItemUpdateSchema().load(request.get_json())
 
@@ -64,11 +66,11 @@ def update_item(pk):
 
 @app.route("/items/<string:pk>", methods=['DELETE'])
 def delete_item(pk):
-    item_ref = user_all_items_ref.document(pk)
+    item_ref = get_item_ref(pk)
     item = item_ref.get()
 
     if not item.exists:
-        return return_not_found_error(TYPE, pk)
+        return not_found_error(ITEM_TYPE, pk)
 
     # TODO: delete instance of item from every collection/tag it belongs to
 

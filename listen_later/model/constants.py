@@ -17,3 +17,8 @@ TAG_NAME = "tag_name"
 
 # Collection Field Names
 COLLECTION_NAME = "collection_name"
+
+# Object Types
+ITEM_TYPE = "Item"
+COLLECTION_TYPE = "Collection"
+TAG_TYPE = "Tag"

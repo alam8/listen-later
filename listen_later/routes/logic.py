@@ -1,13 +1,22 @@
 from listen_later.model.constants import *
-from listen_later.index import app, db
+from listen_later.index import app, db, not_found_error
 from listen_later.routes import item, collection, tag
 from google.cloud.firestore_v1.base_query import FieldFilter
 
 @app.route("/collections/<string:collection_pk>/<string:item_pk>", methods=['PUT', 'POST'])
 def add_item_to_collection(collection_pk, item_pk):
     # TODO: Fix error handling if collection/item not found
-    collection_data = collection.get_collection(collection_pk)
-    collection_ref = collection.user_collections_ref.document(collection_pk)
+    collection_ref = collection.get_collection_ref(collection_pk)
+    collection_doc = collection_ref.get()
+
+    if not collection_doc.exists:
+        return not_found_error(COLLECTION_TYPE, collection_pk)
+    
+    item_ref = item.get_item_ref(item_pk)
+    item_doc = item_ref.get()
+
+    if not item_doc.exists:
+        return not_found_error(ITEM_TYPE, item_pk)
 
     # TODO: Fix collections sub-fbc of item not being copied correctly (maybe convert to map instead?)
     collection_ref.collection(ITEMS).document(item_pk).set(item.get_item(item_pk))
@@ -17,7 +26,7 @@ def add_item_to_collection(collection_pk, item_pk):
     ).stream()
 
     for item_doc in items_query:
-        item_doc.reference.collection(COLLECTIONS).document(collection_pk).set(collection_data)
+        item_doc.reference.collection(COLLECTIONS).document(collection_pk).set(collection_doc.to_dict())
 
     return f'Added Item(id={item_pk} to Collection(id={collection_pk}) successfully', 200
 
