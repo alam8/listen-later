@@ -9,7 +9,7 @@ class Tag(object):
         self.name = name
 
     def __repr__(self):
-        return '<Tag(id={self.id!r},name={self.name})>'.format(self=self)
+        return "<Tag(id={self.id!r},name={self.name})>".format(self=self)
 
 class TagSchema(Schema):
     id = fields.String(missing="")

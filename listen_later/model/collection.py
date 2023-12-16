@@ -8,7 +8,7 @@ class Collection:
         self.name = name
 
     def __repr__(self):
-        return 'Collection(id={self.id!r}, name={self.name!r})'.format(self=self)
+        return "Collection(id={self.id!r}, name={self.name!r})".format(self=self)
 
 class CollectionSchema(Schema):
     id = fields.String(missing="")

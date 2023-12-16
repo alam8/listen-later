@@ -18,20 +18,20 @@ def get_items():
 
     return ItemSchema(many=True).dump(all_items)
 
-def get_item_ref(pk=None):
-    return user_all_items_ref.document(pk)
+def get_item_ref(id=None):
+    return user_all_items_ref.document(id)
 
-@app.route("/items/<string:pk>")
-def get_item(pk):
-    item_ref = get_item_ref(pk)
+@app.route("/items/<string:id>")
+def get_item(id):
+    item_ref = get_item_ref(id)
     item = item_ref.get()
 
     if not item.exists:
-        return not_found_error(ITEM_TYPE, pk)
+        return not_found_error(ITEM_TYPE, id)
 
     return item.to_dict()
 
-@app.route("/items", methods=['POST'])
+@app.route("/items", methods=["POST"])
 def create_item():
     item_ref = get_item_ref()
     item = ItemSchema().load(request.get_json())
@@ -43,15 +43,15 @@ def create_item():
     # Note: Don't display the all_collection when exposing item -> collections to the user
     item_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).set({COLLECTION_NAME: all_collection_ref.get().to_dict().get(COLLECTION_NAME)})
 
-    return f'Created {item} successfully', 201
+    return f"Created {item} successfully", 201
 
-@app.route("/items/<string:pk>", methods=['PUT', 'POST'])
-def update_item(pk):
-    item_ref = get_item_ref(pk)
+@app.route("/items/<string:id>", methods=["PUT", "POST"])
+def update_item(id):
+    item_ref = get_item_ref(id)
     item = item_ref.get()
 
     if not item.exists:
-        return not_found_error(ITEM_TYPE, pk)
+        return not_found_error(ITEM_TYPE, id)
 
     item_update = ItemUpdateSchema().load(request.get_json())
 
@@ -62,17 +62,17 @@ def update_item(pk):
     if item_update.get(LISTENED):
         item_ref.update({LISTENED: item_update.get(LISTENED)})
 
-    return f'Updated item id={pk} successfully with the following values:<br />{ItemUpdateSchema().dump(item_update)}', 200
+    return f"Updated item id={id} successfully with the following values:<br />{ItemUpdateSchema().dump(item_update)}", 200
 
-@app.route("/items/<string:pk>", methods=['DELETE'])
-def delete_item(pk):
-    item_ref = get_item_ref(pk)
+@app.route("/items/<string:id>", methods=["DELETE"])
+def delete_item(id):
+    item_ref = get_item_ref(id)
     item = item_ref.get()
 
     if not item.exists:
-        return not_found_error(ITEM_TYPE, pk)
+        return not_found_error(ITEM_TYPE, id)
 
     # TODO: delete instance of item from every collection/tag it belongs to
 
     item_ref.delete()
-    return f'Deleted item id={pk} successfully', 200
+    return f"Deleted item id={id} successfully", 200

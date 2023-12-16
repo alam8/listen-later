@@ -15,19 +15,19 @@ def get_collections():
 
     return CollectionSchema(many=True).dump(all_collections)
 
-def get_collection_ref(pk=None):
-    return user_collections_ref.document(pk)
+def get_collection_ref(id=None):
+    return user_collections_ref.document(id)
 
-@app.route("/collections/<string:pk>")
-def get_collection(pk):
-    collection = get_collection_ref(pk).get()
+@app.route("/collections/<string:id>")
+def get_collection(id):
+    collection = get_collection_ref(id).get()
 
     if not collection.exists:
-        return not_found_error(COLLECTION_TYPE, pk)
+        return not_found_error(COLLECTION_TYPE, id)
 
     return collection.to_dict()
 
-@app.route("/collections", methods=['POST'])
+@app.route("/collections", methods=["POST"])
 def create_collection():
     collection_ref = get_collection_ref()
     collection = CollectionSchema().load(request.get_json())
@@ -35,16 +35,16 @@ def create_collection():
     collection.id = collection_ref.id
     collection_ref.set(CollectionSchema().dump(collection))
 
-    return f'Created {collection} successfully', 201
+    return f"Created {collection} successfully", 201
 
-@app.route("/collections/<string:pk>", methods=['PUT', 'POST'])
-def update_collection(pk):
-    collection_ref = get_collection_ref(pk)
+@app.route("/collections/<string:id>", methods=["PUT", "POST"])
+def update_collection(id):
+    collection_ref = get_collection_ref(id)
     collection = collection_ref.get()
 
     if not collection.exists:
-        return not_found_error(COLLECTION_TYPE, pk)
-    elif pk == ALL_COLLECTION_ID:
+        return not_found_error(COLLECTION_TYPE, id)
+    elif id == ALL_COLLECTION_ID:
         return {"errors": "All collection cannot be renamed"}, 403
 
     collection_update = CollectionUpdateSchema().load(request.get_json())
@@ -52,11 +52,11 @@ def update_collection(pk):
     if collection_update.get(COLLECTION_NAME):
         collection_ref.update({COLLECTION_NAME: collection_update.get(COLLECTION_NAME)})
 
-    return f'Updated collection id={pk} successfully with the following values:<br />{CollectionUpdateSchema().dump(collection_update)}', 200
+    return f"Updated collection id={id} successfully with the following values:<br />{CollectionUpdateSchema().dump(collection_update)}", 200
 
-@app.route("/collections/<string:pk>", methods=['DELETE'])
-def delete_collection(pk):
-    collection_ref = get_collection_ref(pk)
+@app.route("/collections/<string:id>", methods=["DELETE"])
+def delete_collection(id):
+    collection_ref = get_collection_ref(id)
     collection = collection_ref.get()
 
     try:
@@ -65,8 +65,8 @@ def delete_collection(pk):
         delete_items = False
 
     if not collection.exists:
-        return not_found_error(COLLECTION_TYPE, pk)
-    elif pk == ALL_COLLECTION_ID:
+        return not_found_error(COLLECTION_TYPE, id)
+    elif id == ALL_COLLECTION_ID:
         return {"errors": "All collection cannot be deleted"}, 403
 
     # TODO: if delete_items:
@@ -76,4 +76,4 @@ def delete_collection(pk):
     #           this collection's sub-fbc of collections
 
     collection_ref.delete()
-    return f'Deleted collection id={pk} successfully', 200
+    return f"Deleted collection id={id} successfully", 200
