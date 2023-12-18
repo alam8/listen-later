@@ -1,6 +1,8 @@
 import datetime as dt
 
-from marshmallow import Schema, fields, post_load
+from marshmallow import fields, post_load, Schema
+
+from listen_later.constants import *
 
 class Tag(object):
     def __init__(self, id, date_added, name):
@@ -9,7 +11,7 @@ class Tag(object):
         self.name = name
 
     def __repr__(self):
-        return "<Tag(id={self.id!r},name={self.name})>".format(self=self)
+        return f"{TAG_TYPE}({ID}={self.id!r},name={self.name})".format(self=self)
 
 class TagSchema(Schema):
     id = fields.String(missing="")
@@ -19,6 +21,6 @@ class TagSchema(Schema):
     @post_load
     def make_item(self, data, **kwargs):
         return Tag(**data)
-    
+
 class TagUpdateSchema(Schema):
     name = fields.String()

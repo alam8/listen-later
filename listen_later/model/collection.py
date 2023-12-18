@@ -1,5 +1,8 @@
 import datetime as dt
-from marshmallow import Schema, fields, post_load
+
+from marshmallow import fields, post_load, Schema
+
+from listen_later.constants import *
 
 class Collection:
     def __init__(self, id, date_added, name):
@@ -8,7 +11,7 @@ class Collection:
         self.name = name
 
     def __repr__(self):
-        return "Collection(id={self.id!r}, name={self.name!r})".format(self=self)
+        return f"{COLLECTION_TYPE}({ID}={self.id!r}, {COLLECTION_NAME}={self.name!r})".format(self=self)
 
 class CollectionSchema(Schema):
     id = fields.String(missing="")

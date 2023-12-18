@@ -1,77 +1,62 @@
-from listen_later.model.constants import *
-from listen_later.index import app, db, not_found_error
-from listen_later.routes import item, collection, tag
 from google.cloud.firestore_v1.base_query import FieldFilter
 
-# TODO: Look into refactoring so collection/tag functions can be merged together
+from listen_later.constants import *
+from listen_later.index import db, flask_app
+import listen_later.routes.collection as collection
+import listen_later.routes.item as item
+from listen_later.routes.responses import *
+import listen_later.routes.tag as tag
 
-@app.route("/collections/<string:collection_id>/<string:item_id>", methods=["PUT", "POST"])
+def add_item_to_group(group_type, group_id, item_id):
+    if group_type == COLLECTION_TYPE:
+        group_ref = collection.get_collection_ref(group_id)
+    elif group_type == TAG_TYPE:
+        group_ref = tag.get_tag_ref(group_id)
+
+    group_doc = group_ref.get()
+
+    if not group_doc.exists:
+        return not_found_error(group_type, group_id)
+    elif group_type == COLLECTION_TYPE and group_id == ALL_COLLECTION_ID:
+        return {ERRORS: f"{ITEM_TYPE} cannot be added to {ALL_COLLECTION_ID}"}, 403
+
+    item_ref = item.get_item_ref(item_id)
+    item_doc = item_ref.get()
+
+    if not item_doc.exists:
+        return not_found_error(ITEM_TYPE, item_id)
+    elif item_ref.collection(group_type).document(group_id).get().exists:
+        return {ERRORS: f"{ITEM_TYPE}({ID}={item_id}) already exists in {group_type}({ID}={group_id})"}, 403
+
+    added_item_ref = group_ref.collection(ITEMS).document(item_id)
+    added_item_ref.set(item_doc.to_dict())
+    item_groups_ref = item_ref.collection(group_type).stream()
+    for item_group_ref in item_groups_ref:
+        added_item_ref.collection(group_type).document(item_group_ref.id).set(item_group_ref.to_dict())
+
+    items_query = db.collection_group(ITEMS).where(
+        filter=FieldFilter(ID, "==", item_id)
+    ).stream()
+    for queried_item_doc in items_query:
+        queried_item_doc.reference.collection(group_type).document(group_id).set(group_doc.to_dict())
+
+    return f"Added {ITEM_TYPE}({ID}={item_id}) to {group_type}({ID}={group_id}) successfully", 200
+
+def remove_item_from_group(group_type, group_id, item_id):
+    pass
+
+@flask_app.route("/collections/<string:collection_id>/<string:item_id>", methods=["PUT", "POST"])
 def add_item_to_collection(collection_id, item_id):
-    collection_ref = collection.get_collection_ref(collection_id)
-    collection_doc = collection_ref.get()
+    return add_item_to_group(COLLECTION_TYPE, collection_id, item_id)
 
-    if not collection_doc.exists:
-        return not_found_error(COLLECTION_TYPE, collection_id)
-    elif collection_id == ALL_COLLECTION_ID:
-        return {"errors": "Items cannot be added to All collection"}, 403
-
-    item_ref = item.get_item_ref(item_id)
-    item_doc = item_ref.get()
-
-    if not item_doc.exists:
-        return not_found_error(ITEM_TYPE, item_id)
-    elif item_ref.collection(COLLECTIONS).document(collection_id).get().exists:
-        return {"errors": f"Item(id={item_id}) already exists in Collection(id={collection_id})"}, 403
-
-    added_item_ref = collection_ref.collection(ITEMS).document(item_id)
-    added_item_ref.set(item_doc.to_dict())
-    item_collections_ref = item_ref.collection(COLLECTIONS).stream()
-    for item_collection_ref in item_collections_ref:
-        added_item_ref.collection(COLLECTIONS).document(item_collection_ref.id).set(item_collection_ref.to_dict())
-
-    items_query = db.collection_group(ITEMS).where(
-        filter=FieldFilter("id", "==", item_id)
-    ).stream()
-    for queried_item_doc in items_query:
-        queried_item_doc.reference.collection(COLLECTIONS).document(collection_id).set(collection_doc.to_dict())
-
-    return f"Added Item(id={item_id}) to Collection(id={collection_id}) successfully", 200
-
-@app.route("/collections/<string:collection_id>/<string:item_id>", methods=["DELETE"])
-def remove_item_from_collection(collection_id, item_id):
-    pass
-
-@app.route("/tags/<string:tag_id>/<string:item_id>", methods=["PUT", "POST"])
+@flask_app.route("/tags/<string:tag_id>/<string:item_id>", methods=["PUT", "POST"])
 def add_item_to_tag(tag_id, item_id):
-    tag_ref = tag.get_tag_ref(tag_id)
-    tag_doc = tag_ref.get()
+    return add_item_to_group(TAG_TYPE, tag_id, item_id)
 
-    if not tag_doc.exists:
-        return not_found_error(TAG_TYPE, tag_id)
+@flask_app.route("/collections/<string:collection_id>/<string:item_id>", methods=["DELETE"])
+def remove_item_from_collection(collection_id, item_id):
+    return remove_item_from_group(COLLECTION_TYPE, collection_id, item_id)
 
-    item_ref = item.get_item_ref(item_id)
-    item_doc = item_ref.get()
-
-    if not item_doc.exists:
-        return not_found_error(ITEM_TYPE, item_id)
-    elif item_ref.collection(TAGS).document(tag_id).get().exists:
-        return {"errors": f"Item(id={item_id}) already exists in Tag(id={tag_id})"}, 403
-
-    added_item_ref = tag_ref.collection(ITEMS).document(item_id)
-    added_item_ref.set(item_doc.to_dict())
-
-    item_tags_ref = item_ref.collection(TAGS).stream()
-    for item_tag_ref in item_tags_ref:
-        added_item_ref.collection(TAGS).document(item_tag_ref.id).set(item_tag_ref.to_dict())
-
-    items_query = db.collection_group(ITEMS).where(
-        filter=FieldFilter("id", "==", item_id)
-    ).stream()
-    for queried_item_doc in items_query:
-        queried_item_doc.reference.collection(TAGS).document(tag_id).set(tag_doc.to_dict())
-
-    return f"Added Item(id={item_id}) to Tag(id={tag_id}) successfully", 200
-
-@app.route("/tags/<string:tag_id>/<string:item_id>", methods=["DELETE"])
+@flask_app.route("/tags/<string:tag_id>/<string:item_id>", methods=["DELETE"])
 def remove_item_from_tag(tag_id, item_id):
-    pass
+    return remove_item_from_group(TAG_TYPE, tag_id, item_id)
