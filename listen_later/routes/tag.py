@@ -3,9 +3,10 @@ from flask import request
 from listen_later.constants import *
 from listen_later.index import flask_app, user_ref
 from listen_later.model.tag import TagSchema, TagUpdateSchema
-import listen_later.routes.responses as responses
+from listen_later.routes import responses
 
 user_tags_ref = user_ref.collection(TAGS)
+
 
 @flask_app.route("/tags")
 def get_tags():
@@ -17,18 +18,21 @@ def get_tags():
 
     return TagSchema(many=True).dump(tags)
 
-def get_tag_ref(id=None):
-    return user_tags_ref.document(id)
 
-@flask_app.route("/tags/<string:id>")
-def get_tag(id):
-    tag_ref = get_tag_ref(id)
+def get_tag_ref(tag_id=None):
+    return user_tags_ref.document(tag_id)
+
+
+@flask_app.route("/tags/<string:tag_id>")
+def get_tag(tag_id):
+    tag_ref = get_tag_ref(tag_id)
     tag = tag_ref.get()
 
     if not tag.exists:
-        return responses.not_found_error(TAG_TYPE, id)
+        return responses.not_found_error(TAG_TYPE, tag_id)
 
     return tag.to_dict()
+
 
 @flask_app.route("/tags", methods=["POST"])
 def create_tag():
@@ -38,33 +42,35 @@ def create_tag():
     tag.id = tag_ref.id
     tag_ref.set(TagSchema().dump(tag))
 
-    return f"Created {tag} successfully", 201
+    return responses.obj_created(tag)
 
-@flask_app.route("/tags/<int:id>", methods=["PUT", "POST"])
-def update_tag(id):
-    tag_ref = get_tag_ref(id)
+
+@flask_app.route("/tags/<int:tag_id>", methods=["PUT", "POST"])
+def update_tag(tag_id):
+    tag_ref = get_tag_ref(tag_id)
     tag = tag_ref.get()
 
     if not tag.exists:
-        return responses.not_found_error(TAG_TYPE, id)
+        return responses.not_found_error(TAG_TYPE, tag_id)
 
     tag_update = TagUpdateSchema().load(request.get_json())
 
     if tag_update.get(TAG_NAME):
         tag_ref.update({TAG_NAME: tag_update.get(TAG_NAME)})
 
-    return f"Updated {TAG_TYPE}({ID}={id}) successfully with the following values:<br />{TagUpdateSchema().dump(tag_update)}", 200
+    return responses.obj_updated(TAG_TYPE, tag_id, TagUpdateSchema().dump(tag_update))
 
-@flask_app.route("/tags/<int:id>", methods=["DELETE"])
-def delete_tag(id):
-    tag_ref = get_tag_ref(id)
+
+@flask_app.route("/tags/<int:tag_id>", methods=["DELETE"])
+def delete_tag(tag_id):
+    tag_ref = get_tag_ref(tag_id)
     tag = tag_ref.get()
 
     if not tag.exists:
-        return responses.not_found_error(TAG_TYPE, id)
+        return responses.not_found_error(TAG_TYPE, tag_id)
 
     # TODO: remove only this tag from each instance of every item in
     #       this tag's sub-fbc of tags
 
     tag_ref.delete()
-    return f"Deleted {TAG_TYPE}({ID}={id}) successfully", 200
+    return responses.obj_deleted(TAG_TYPE, tag_id)

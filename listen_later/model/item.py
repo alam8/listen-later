@@ -4,8 +4,9 @@ from marshmallow import fields, post_load, Schema
 
 from listen_later.constants import *
 
+
 class Item(object):
-    def __init__(self, id, date_added, content_link, tag_ids, collection_ids, rating, listened):
+    def __init__(self, id, date_added, content_link, rating, listened):
         self.id = id or ""
         self.content_link = content_link
         self.rating = rating or None
@@ -18,6 +19,7 @@ class Item(object):
     def __repr__(self):
         return f"{ITEM_TYPE}({ID}={self.id!r})".format(self=self)
 
+
 class ItemSchema(Schema):
     id = fields.String(missing="")
     date_added = fields.DateTime(missing=dt.datetime.now())
@@ -28,6 +30,7 @@ class ItemSchema(Schema):
     @post_load
     def make_item(self, data, **kwargs):
         return Item(**data)
+
 
 class ItemUpdateSchema(Schema):
     content_link = fields.String()
