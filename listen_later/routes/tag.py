@@ -1,14 +1,14 @@
-from flask import request
+from flask import current_app, request
 
 from listen_later.constants import *
-from listen_later.index import flask_app, user_ref
 from listen_later.model.tag import TagSchema, TagUpdateSchema
 from listen_later.routes import responses
+from listen_later.user import user_ref
 
 user_tags_ref = user_ref.collection(TAGS)
 
 
-@flask_app.route("/tags")
+@current_app.route("/tags")
 def get_tags():
     tags_ref = user_tags_ref.collection(TAGS).stream()
     tags = []
@@ -23,7 +23,7 @@ def get_tag_ref(tag_id=None):
     return user_tags_ref.document(tag_id)
 
 
-@flask_app.route("/tags/<string:tag_id>")
+@current_app.route("/tags/<string:tag_id>")
 def get_tag(tag_id):
     tag_ref = get_tag_ref(tag_id)
     tag = tag_ref.get()
@@ -34,7 +34,7 @@ def get_tag(tag_id):
     return tag.to_dict()
 
 
-@flask_app.route("/tags", methods=["POST"])
+@current_app.route("/tags", methods=["POST"])
 def create_tag():
     tag_ref = get_tag_ref()
     tag = TagSchema().load(request.get_json())
@@ -45,7 +45,7 @@ def create_tag():
     return responses.obj_created(tag)
 
 
-@flask_app.route("/tags/<int:tag_id>", methods=["PUT", "POST"])
+@current_app.route("/tags/<int:tag_id>", methods=["PUT", "POST"])
 def update_tag(tag_id):
     tag_ref = get_tag_ref(tag_id)
     tag = tag_ref.get()
@@ -61,7 +61,7 @@ def update_tag(tag_id):
     return responses.obj_updated(TAG_TYPE, tag_id, TagUpdateSchema().dump(tag_update))
 
 
-@flask_app.route("/tags/<int:tag_id>", methods=["DELETE"])
+@current_app.route("/tags/<int:tag_id>", methods=["DELETE"])
 def delete_tag(tag_id):
     tag_ref = get_tag_ref(tag_id)
     tag = tag_ref.get()

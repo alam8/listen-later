@@ -1,7 +1,8 @@
+from flask import current_app
 from google.cloud.firestore_v1.base_query import FieldFilter
 
 from listen_later.constants import *
-from listen_later.index import db, flask_app
+from listen_later.app import db
 from listen_later.routes import collection, item, responses, tag
 
 
@@ -49,25 +50,25 @@ def add_item_to_group(group_type, group_id, item_id):
 
 
 def remove_item_from_group(group_type, group_id, item_id):
-    return {ERRORS: "Still needs to be implemented"}, 501
+    return {ERRORS: "NOT IMPLEMENTED!"}, 501
 
 
 
-@flask_app.route("/collections/<string:collection_id>/<string:item_id>", methods=["PUT", "POST"])
+@current_app.route("/collections/<string:collection_id>/<string:item_id>", methods=["PUT", "POST"])
 def add_item_to_collection(collection_id, item_id):
     return add_item_to_group(COLLECTION_TYPE, collection_id, item_id)
 
 
-@flask_app.route("/tags/<string:tag_id>/<string:item_id>", methods=["PUT", "POST"])
+@current_app.route("/tags/<string:tag_id>/<string:item_id>", methods=["PUT", "POST"])
 def add_item_to_tag(tag_id, item_id):
     return add_item_to_group(TAG_TYPE, tag_id, item_id)
 
 
-@flask_app.route("/collections/<string:collection_id>/<string:item_id>", methods=["DELETE"])
+@current_app.route("/collections/<string:collection_id>/<string:item_id>", methods=["DELETE"])
 def remove_item_from_collection(collection_id, item_id):
     return remove_item_from_group(COLLECTION_TYPE, collection_id, item_id)
 
 
-@flask_app.route("/tags/<string:tag_id>/<string:item_id>", methods=["DELETE"])
+@current_app.route("/tags/<string:tag_id>/<string:item_id>", methods=["DELETE"])
 def remove_item_from_tag(tag_id, item_id):
     return remove_item_from_group(TAG_TYPE, tag_id, item_id)
