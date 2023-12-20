@@ -1,5 +1,7 @@
 from flask import current_app, request
+from google.cloud.firestore_v1.base_query import FieldFilter
 
+from listen_later.app import db
 from listen_later.constants import *
 from listen_later.model.tag import TagSchema, TagUpdateSchema
 from listen_later.routes import responses
@@ -69,8 +71,13 @@ def delete_tag(tag_id):
     if not tag.exists:
         return responses.not_found_error(TAG_TYPE, tag_id)
 
-    # TODO: remove only this tag from each instance of every item in
-    #       this tag's sub-fbc of tags
+    # Remove this tag from each instance of every item in this tag's sub-fbc of tags.
+    for item in tag_ref.collection(ITEMS).stream():
+        items_query = db.collection_group(ITEMS).where(
+            filter=FieldFilter(ID, "==", item.id)
+        ).stream()
+        for queried_item_doc in items_query:
+            queried_item_doc.reference.collection(TAGS).document(tag_id).delete()
 
     tag_ref.delete()
     return responses.obj_deleted(TAG_TYPE, tag_id)

@@ -1,5 +1,7 @@
 from flask import current_app, request
+from google.cloud.firestore_v1.base_query import FieldFilter
 
+from listen_later.app import db
 from listen_later.constants import *
 from listen_later.model.collection import CollectionSchema, CollectionUpdateSchema
 from listen_later.routes import responses
@@ -77,11 +79,19 @@ def delete_collection(collection_id):
     if collection_id == ALL_COLLECTION_ID:
         return {ERRORS: f"{ALL_COLLECTION_ID} cannot be deleted."}, 403
 
-    # TODO: if delete_items:
-    #           delete every item in this collection from all other collections
-    #       else:
-    #           remove only this collection from each instance of every item in
-    #           this collection's sub-fbc of collections
+    # If delete_items, delete each instance of every item in this collection
+    # from every collection/tag it belongs to.
+    # Else, remove this collection from each instance of every item in this
+    # collection's sub-fbc of collections.
+    for item in collection_ref.collection(ITEMS).stream():
+        items_query = db.collection_group(ITEMS).where(
+            filter=FieldFilter(ID, "==", item.id)
+        ).stream()
+        for queried_item_doc in items_query:
+            if delete_items:
+                queried_item_doc.reference.delete()
+            else:
+                queried_item_doc.reference.collection(COLLECTIONS).document(collection_id).delete()
 
     collection_ref.delete()
     return responses.obj_deleted(COLLECTION_TYPE, collection_id)

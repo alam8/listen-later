@@ -19,7 +19,7 @@ def add_item_to_group(group_type, group_id, item_id):
     if not group_doc.exists:
         return responses.not_found_error(group_type, group_id)
     if group_type == COLLECTION_TYPE and group_id == ALL_COLLECTION_ID:
-        return {ERRORS: f"{ITEM_TYPE} cannot be added to {ALL_COLLECTION_ID}."}, 403
+        return {ERRORS: f"{ITEM_TYPE}s cannot be added to the {ALL_COLLECTION_ID}."}, 403
 
     item_ref = item.get_item_ref(item_id)
     item_doc = item_ref.get()

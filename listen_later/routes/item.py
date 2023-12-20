@@ -1,13 +1,13 @@
 from flask import current_app, request
+from google.cloud.firestore_v1.base_query import FieldFilter
 
+from listen_later.app import db
 from listen_later.constants import *
 from listen_later.model.item import ItemSchema, ItemUpdateSchema
 from listen_later.model.item_type import ItemType
 from listen_later.routes import responses
 from listen_later.user import user_ref
 
-# TODO: test whether all_collection needs to be created upon user initialization or if Firebase will
-#       automatically create it without issues
 user_all_items_ref = user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).collection(ITEMS)
 
 
@@ -82,7 +82,12 @@ def delete_item(item_id):
     if not item.exists:
         return responses.not_found_error(ITEM_TYPE, item_id)
 
-    # TODO: delete instance of item from every collection/tag it belongs to
+    # Delete each instance of this item from every collection/tag it belongs to.
+    items_query = db.collection_group(ITEMS).where(
+        filter=FieldFilter(ID, "==", item_id)
+    ).stream()
+    for queried_item_doc in items_query:
+        queried_item_doc.reference.delete()
 
     item_ref.delete()
     return responses.obj_deleted(ITEM_TYPE, item_id)
