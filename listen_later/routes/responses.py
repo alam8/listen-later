@@ -6,12 +6,12 @@ def not_found_error(obj_type, obj_id):
 
 
 def obj_created(obj):
-    return {constants.ERRORS: f"Created {obj} successfully."}, 201
+    return f"Created {obj} successfully.", 201
 
 
 def obj_updated(obj_type, obj_id, updated_vals):
-    return {constants.ERRORS: f"Updated {obj_type}({constants.ID}={obj_id}) successfully with the following values:<br />{updated_vals}."}, 200
+    return f"Updated {obj_type}({constants.ID}={obj_id}) successfully with the following values:<br />{updated_vals}.", 200
 
 
 def obj_deleted(obj_type, obj_id):
-    return {constants.ERRORS: f"Deleted {obj_type}({constants.ID}={obj_id}) successfully."}, 200
+    return f"Deleted {obj_type}({constants.ID}={obj_id}) successfully.", 200

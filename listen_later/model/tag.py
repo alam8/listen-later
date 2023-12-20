@@ -6,19 +6,19 @@ from listen_later.constants import *
 
 
 class Tag(object):
-    def __init__(self, id, date_added, name):
+    def __init__(self, id, date_added, tag_name):
         self.id = id or ""
         self.date_added = date_added or dt.datetime.now()
-        self.name = name
+        self.tag_name = tag_name
 
     def __repr__(self):
-        return f"{TAG_TYPE}({ID}={self.id!r},name={self.name})".format(self=self)
+        return f"{TAG_TYPE}({ID}={self.id!r},{TAG_NAME}={self.tag_name})".format(self=self)
 
 
 class TagSchema(Schema):
     id = fields.String(missing="")
     date_added = fields.DateTime(missing=dt.datetime.now())
-    name = fields.String(required=True)
+    tag_name = fields.String(required=True)
 
     @post_load
     def make_item(self, data, **kwargs):
@@ -26,4 +26,4 @@ class TagSchema(Schema):
 
 
 class TagUpdateSchema(Schema):
-    name = fields.String()
+    tag_name = fields.String()

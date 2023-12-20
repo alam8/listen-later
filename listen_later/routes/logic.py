@@ -50,7 +50,23 @@ def add_item_to_group(group_type, group_id, item_id):
 
 
 def remove_item_from_group(group_type, group_id, item_id):
-    return {ERRORS: "NOT IMPLEMENTED!"}, 501
+    if group_type == COLLECTION_TYPE:
+        group_ref = collection.get_collection_ref(group_id)
+        fbc_name = COLLECTIONS
+    elif group_type == TAG_TYPE:
+        group_ref = tag.get_tag_ref(group_id)
+        fbc_name = TAGS
+
+    items_query = db.collection_group(ITEMS).where(
+        filter=FieldFilter(ID, "==", item_id)
+    ).stream()
+    for queried_item_doc in items_query:
+        queried_item_doc.reference.collection(fbc_name).document(group_id).delete()
+
+    # TODO: delete the item's collections and tags sub-fbcs first
+    group_ref.collection(ITEMS).document(item_id).delete()
+
+    return f"Removed {ITEM_TYPE}({ID}={item_id}) from {group_type}({ID}={group_id}) successfully.", 200
 
 
 

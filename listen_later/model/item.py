@@ -14,6 +14,7 @@ class Item(object):
         self.date_added = date_added or dt.datetime.now()
 
         # TODO: use Spotify API to get name, artist, image url, type, etc. from content_link
+        #       and add validation for content_link
         self.item_type_id = None
 
     def __repr__(self):
