@@ -5,36 +5,23 @@ from listen_later.app import db
 from listen_later.constants import *
 from listen_later.model.item import ItemSchema, ItemUpdateSchema
 from listen_later.model.item_type import ItemType
-from listen_later.routes import responses
+from listen_later.routes import logic, responses
 from listen_later.user import user_ref
 
-user_all_items_ref = user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).collection(ITEMS)
+
+def get_item_ref(item_id=None):
+    return user_ref.collection(COLLECTIONS).document(ALL_COLLECTION_ID).collection(ITEMS).document(item_id)
+
 
 
 @current_app.route("/items")
 def get_items():
-    items_ref = user_all_items_ref.stream()
-    all_items = []
-
-    for item_ref in items_ref:
-        all_items.append(ItemSchema().load(item_ref.to_dict()))
-
-    return ItemSchema(many=True).dump(all_items)
-
-
-def get_item_ref(item_id=None):
-    return user_all_items_ref.document(item_id)
+    return logic.get_items_from_collection(ALL_COLLECTION_ID)
 
 
 @current_app.route("/items/<string:item_id>")
 def get_item(item_id):
-    item_ref = get_item_ref(item_id)
-    item = item_ref.get()
-
-    if not item.exists:
-        return responses.not_found_error(ITEM_TYPE, item_id)
-
-    return item.to_dict()
+    return logic.get_item_from_collection(ALL_COLLECTION_ID, item_id)
 
 
 @current_app.route("/items", methods=["POST"])
@@ -64,6 +51,7 @@ def update_item(item_id):
 
     item_update = ItemUpdateSchema().load(request.get_json())
 
+    # TODO: each instance of the item needs to be updated
     if item_update.get(CONTENT_LINK):
         item_ref.update({CONTENT_LINK: item_update.get(CONTENT_LINK)})
     if item_update.get(RATING):

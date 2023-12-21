@@ -10,19 +10,20 @@ from listen_later.user import user_ref
 user_collections_ref = user_ref.collection(COLLECTIONS)
 
 
+def get_collection_ref(collection_id=None):
+    return user_collections_ref.document(collection_id)
+
+
+
 @current_app.route("/collections")
 def get_collections():
     collections_ref = user_collections_ref.stream()
     all_collections = []
 
     for collection_ref in collections_ref:
-        all_collections.append(CollectionSchema().load(collection_ref.to_dict))
+        all_collections.append(CollectionSchema().load(collection_ref.to_dict()))
 
     return CollectionSchema(many=True).dump(all_collections)
-
-
-def get_collection_ref(collection_id=None):
-    return user_collections_ref.document(collection_id)
 
 
 @current_app.route("/collections/<string:collection_id>")
@@ -58,6 +59,7 @@ def update_collection(collection_id):
 
     collection_update = CollectionUpdateSchema().load(request.get_json())
 
+    # TODO: each instance of the collection needs to be updated
     if collection_update.get(COLLECTION_NAME):
         collection_ref.update({COLLECTION_NAME: collection_update.get(COLLECTION_NAME)})
 

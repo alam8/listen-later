@@ -10,6 +10,11 @@ from listen_later.user import user_ref
 user_tags_ref = user_ref.collection(TAGS)
 
 
+def get_tag_ref(tag_id=None):
+    return user_tags_ref.document(tag_id)
+
+
+
 @current_app.route("/tags")
 def get_tags():
     tags_ref = user_tags_ref.collection(TAGS).stream()
@@ -19,10 +24,6 @@ def get_tags():
         tags.append(TagSchema().load(tag_ref.to_dict()))
 
     return TagSchema(many=True).dump(tags)
-
-
-def get_tag_ref(tag_id=None):
-    return user_tags_ref.document(tag_id)
 
 
 @current_app.route("/tags/<string:tag_id>")
@@ -57,6 +58,7 @@ def update_tag(tag_id):
 
     tag_update = TagUpdateSchema().load(request.get_json())
 
+    # TODO: each instance of the tag needs to be updated
     if tag_update.get(TAG_NAME):
         tag_ref.update({TAG_NAME: tag_update.get(TAG_NAME)})
 

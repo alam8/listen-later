@@ -1,6 +1,6 @@
 ALL_COLLECTION_ID = "all_collection"
 
-# TODO: remove after authentication is set up
+# TODO: remove after user authentication is set up
 TEST_USER = "YS9XU0sLCp9nq9Gxtw4N"
 
 # Firebase Collection Names
