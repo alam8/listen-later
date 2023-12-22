@@ -109,7 +109,17 @@ def remove_item_from_group(group_type, group_id, item_id):
     for queried_item_doc in items_query:
         queried_item_doc.reference.collection(fbc_name).document(group_id).delete()
 
-    # TODO: delete the item's collections and tags sub-fbcs first
+    # Delete the collections and tags sub-fbcs of the item's instance in the group first.
+    group_item_ref = group_ref.collection(ITEMS).document(item_id)
+
+    item_collections = group_item_ref.collection(COLLECTIONS).stream()
+    for collection_doc in item_collections:
+        collection_doc.reference.delete()
+
+    item_tags = group_item_ref.collection(TAGS).stream()
+    for tag_doc in item_tags:
+        tag_doc.reference.delete()
+
     group_ref.collection(ITEMS).document(item_id).delete()
 
     return f"Removed {ITEM_TYPE}({ID}={item_id}) from {group_type}({ID}={group_id}) successfully.", 200
