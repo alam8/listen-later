@@ -17,7 +17,7 @@ def get_tag_ref(tag_id=None):
 
 @current_app.route("/tags")
 def get_tags():
-    tags_ref = user_tags_ref.collection(TAGS).stream()
+    tags_ref = user_tags_ref.stream()
     tags = []
 
     for tag_ref in tags_ref:
@@ -48,7 +48,7 @@ def create_tag():
     return responses.obj_created(tag)
 
 
-@current_app.route("/tags/<int:tag_id>", methods=["PUT", "POST"])
+@current_app.route("/tags/<string:tag_id>", methods=["PUT", "POST"])
 def update_tag(tag_id):
     tag_ref = get_tag_ref(tag_id)
     tag = tag_ref.get()
@@ -70,7 +70,7 @@ def update_tag(tag_id):
     return responses.obj_updated(TAG_TYPE, tag_id, TagUpdateSchema().dump(tag_update))
 
 
-@current_app.route("/tags/<int:tag_id>", methods=["DELETE"])
+@current_app.route("/tags/<string:tag_id>", methods=["DELETE"])
 def delete_tag(tag_id):
     tag_ref = get_tag_ref(tag_id)
     tag = tag_ref.get()

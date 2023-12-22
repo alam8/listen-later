@@ -72,9 +72,10 @@ def add_item_to_group(group_type, group_id, item_id):
 
     # Set the added item's existing collections and tags sub-fbcs since they aren't automatically copied.
     item_collections_ref = item_ref.collection(COLLECTIONS).stream()
-    item_tags_ref = item_ref.collection(TAGS).stream()
     for item_collection_ref in item_collections_ref:
         added_item_ref.collection(COLLECTIONS).document(item_collection_ref.id).set(item_collection_ref.to_dict())
+
+    item_tags_ref = item_ref.collection(TAGS).stream()
     for item_tag_ref in item_tags_ref:
         added_item_ref.collection(TAGS).document(item_tag_ref.id).set(item_tag_ref.to_dict())
 

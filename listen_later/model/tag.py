@@ -12,7 +12,7 @@ class Tag(object):
         self.tag_name = tag_name
 
     def __repr__(self):
-        return f"{TAG_TYPE}({ID}={self.id!r},{TAG_NAME}={self.tag_name})".format(self=self)
+        return f"{TAG_TYPE}({ID}={self.id!r}, {TAG_NAME}={self.tag_name})".format(self=self)
 
 
 class TagSchema(Schema):
