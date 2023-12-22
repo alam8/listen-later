@@ -54,14 +54,19 @@ def update_collection(collection_id):
 
     if not collection.exists:
         return responses.not_found_error(COLLECTION_TYPE, collection_id)
-    elif collection_id == ALL_COLLECTION_ID:
-        return {ERRORS: f"{ALL_COLLECTION_ID} cannot be renamed."}, 403
+    if collection_id == ALL_COLLECTION_ID:
+        return {ERRORS: f"{ALL_COLLECTION_ID} cannot be updated."}, 403
 
     collection_update = CollectionUpdateSchema().load(request.get_json())
 
-    # TODO: each instance of the collection needs to be updated
-    if collection_update.get(COLLECTION_NAME):
-        collection_ref.update({COLLECTION_NAME: collection_update.get(COLLECTION_NAME)})
+    # Each instance of the collection needs to be updated.
+    collections_query = db.collection_group(COLLECTIONS).where(
+        filter=FieldFilter(ID, "==", collection_id)
+    ).stream()
+
+    for queried_collection_doc in collections_query:
+        if collection_update.get(COLLECTION_NAME):
+            queried_collection_doc.reference.update({COLLECTION_NAME: collection_update.get(COLLECTION_NAME)})
 
     return responses.obj_updated(COLLECTION_TYPE, collection_id, CollectionUpdateSchema().dump(collection_update))
 

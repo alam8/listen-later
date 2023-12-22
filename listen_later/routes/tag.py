@@ -58,9 +58,14 @@ def update_tag(tag_id):
 
     tag_update = TagUpdateSchema().load(request.get_json())
 
-    # TODO: each instance of the tag needs to be updated
-    if tag_update.get(TAG_NAME):
-        tag_ref.update({TAG_NAME: tag_update.get(TAG_NAME)})
+    # Each instance of the tag needs to be updated.
+    tags_query = db.collection_group(TAGS).where(
+        filter=FieldFilter(ID, "==", tag_id)
+    ).stream()
+
+    for queried_tag_doc in tags_query:
+        if tag_update.get(TAG_NAME):
+            queried_tag_doc.reference.update({TAG_NAME: tag_update.get(TAG_NAME)})
 
     return responses.obj_updated(TAG_TYPE, tag_id, TagUpdateSchema().dump(tag_update))
 

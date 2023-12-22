@@ -51,13 +51,18 @@ def update_item(item_id):
 
     item_update = ItemUpdateSchema().load(request.get_json())
 
-    # TODO: each instance of the item needs to be updated
-    if item_update.get(CONTENT_LINK):
-        item_ref.update({CONTENT_LINK: item_update.get(CONTENT_LINK)})
-    if item_update.get(RATING):
-        item_ref.update({RATING: item_update.get(RATING)})
-    if item_update.get(LISTENED):
-        item_ref.update({LISTENED: item_update.get(LISTENED)})
+    # Each instance of the item needs to be updated.
+    items_query = db.collection_group(ITEMS).where(
+        filter=FieldFilter(ID, "==", item_id)
+    ).stream()
+
+    for queried_item_doc in items_query:
+        if item_update.get(CONTENT_LINK):
+            queried_item_doc.reference.update({CONTENT_LINK: item_update.get(CONTENT_LINK)})
+        if item_update.get(RATING):
+            queried_item_doc.reference.update({RATING: item_update.get(RATING)})
+        if item_update.get(LISTENED):
+            queried_item_doc.reference.update({LISTENED: item_update.get(LISTENED)})
 
     return responses.obj_updated(ITEM_TYPE, item_id, ItemUpdateSchema().dump(item_update))
 
