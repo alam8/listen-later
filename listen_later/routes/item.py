@@ -27,7 +27,10 @@ def get_item(item_id):
 @current_app.route("/items", methods=["POST"])
 def create_item():
     item_ref = get_item_ref()
-    item = ItemSchema().load(request.get_json())
+    try:
+        item = ItemSchema().load(request.get_json())
+    except (IndexError, ValueError):
+        return {ERRORS: f"Invalid content link. Expected link format: https://open.spotify.com/CONTENT_TYPE/CONTENT_ID"}, 400
 
     item.id = item_ref.id
     item_ref.set(ItemSchema().dump(item))

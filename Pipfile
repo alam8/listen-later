@@ -9,6 +9,8 @@ marshmallow = "*"
 firebase-admin = "*"
 pip = "*"
 "google.cloud" = "*"
+requests = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
